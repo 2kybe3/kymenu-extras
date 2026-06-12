@@ -1,0 +1,15 @@
+[package]
+name = "kymenu-dir"
+version.workspace = true
+edition = "2024"
+
+[dependencies]
+common = { path = "../common" }
+
+clap = { version = "4.6.1", features = ["derive"] }
+walkdir = "2.5.0"
+
+[build-dependencies]
+clap = { version = "4.6.1", features = ["derive"] }
+clap_complete = "4.6.5"
+anyhow = "1.0.102"

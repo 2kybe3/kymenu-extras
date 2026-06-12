@@ -1,0 +1,10 @@
+[workspace]
+resolver = "3"
+members = ["common","kymenu-dir"]
+
+[workspace.metadata.crane]
+name = "kymenu-extras"
+
+[workspace.package]
+version = "0.1.0"
+authors = ["2kybe3"]
