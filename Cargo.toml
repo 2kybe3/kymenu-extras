@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["common","kymenu-dir"]
+members = ["common", "kymenu-dir"]
 
 [workspace.metadata.crane]
 name = "kymenu-extras"

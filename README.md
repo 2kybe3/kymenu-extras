@@ -30,7 +30,7 @@ kymenu-dir ~/git --max-depth 1 | kymenu --json-in
 ### Options
 
 ```bash
-kymenu-dir <PATH> [--mode <MODE>] [--max-depth N] [--min-depth N] [--file true/false] [--foler true/false]
+kymenu-dir <PATH> [--mode <MODE>] [--max-depth N] [--min-depth N] [--file true/false] [--folder true/false]
 ```
 
 **Modes**: `relative` (default), `filename`, `absolute`
