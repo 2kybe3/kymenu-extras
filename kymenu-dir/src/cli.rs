@@ -21,6 +21,21 @@ pub(crate) struct Cli {
 
     #[arg(long)]
     pub(crate) folder: Option<bool>,
+
+    #[arg(long)]
+    pub(crate) exclude: Vec<String>,
+
+    #[arg(long)]
+    pub(crate) hidden: Option<bool>,
+
+    #[arg(long)]
+    pub(crate) limit: Option<usize>,
+
+    #[arg(long)]
+    pub(crate) ext: Vec<String>,
+
+    #[arg(long)]
+    pub(crate) name: Option<String>,
 }
 
 #[derive(Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
