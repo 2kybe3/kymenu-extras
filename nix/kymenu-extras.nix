@@ -53,6 +53,7 @@ let
         inherit pname;
         cargoExtraArgs = "-p ${pname}";
         src = fileSetForCrate ../kymenu-dir;
+        meta.mainProgram = pname;
 
         nativeBuildInputs = [ pkgs.installShellFiles ];
         postInstall = installCompletionsForCrate pname;
