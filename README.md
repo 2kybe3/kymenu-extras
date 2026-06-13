@@ -2,4 +2,4 @@
 
 Lightweight utilities that generate input for **kymenu**.
 
-### [kymenu-dir](./kymenu-dir/README.md);
+### [kymenu-dir](./kymenu-dir/README.md)
