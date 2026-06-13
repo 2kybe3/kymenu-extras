@@ -64,7 +64,17 @@ fn extract_results(results: &mut Vec<InputItem>, extracted: &Extracted, base_pat
             DisplayMode::Filename => name.into_owned(),
             DisplayMode::Absolute => entry_path.display().to_string(),
             DisplayMode::Relative => match entry_path.strip_prefix(base_path) {
-                Ok(rel) => rel.display().to_string(),
+                Ok(rel) => {
+                    let rel = rel.display().to_string();
+                    if rel.is_empty() {
+                        base_path
+                            .file_name()
+                            .map(|s| s.display().to_string())
+                            .expect("file_name should never return None because we canonicalize the path")
+                    } else {
+                        rel
+                    }
+                }
                 Err(_) => continue,
             },
             DisplayMode::RelativePrefixed => match entry_path.strip_prefix(base_path) {
