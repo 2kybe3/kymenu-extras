@@ -36,12 +36,18 @@ let
       ];
     };
 
+  outPath = crate: "target/*/build/*/out";
+
   installCompletionsForCrate = crate: ''
     installShellCompletion --cmd ${crate} \
-        --nushell target/*/build/${crate}*/out/${crate}.elv \
-        --bash target/*/build/${crate}*/out/${crate}.bash \
-        --fish target/*/build/${crate}*/out/${crate}.fish \
-        --zsh  target/*/build/${crate}*/out/_${crate}
+        --nushell ${outPath crate}/completions/${crate}.elv \
+        --bash ${outPath crate}/completions/${crate}.bash \
+        --fish ${outPath crate}/completions/${crate}.fish \
+        --zsh  ${outPath crate}/completions/_${crate}
+  '';
+
+  installManPagesForCrate = crate: ''
+    installManPage ${outPath crate}/man/*
   '';
 
   kymenu-dir = craneLib.buildPackage (
@@ -57,7 +63,10 @@ let
         meta.mainProgram = pname;
 
         nativeBuildInputs = [ pkgs.installShellFiles ];
-        postInstall = installCompletionsForCrate pname;
+        postInstall = toString [
+          (installCompletionsForCrate pname)
+          (installManPagesForCrate pname)
+        ];
       }
     )
   );

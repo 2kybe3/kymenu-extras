@@ -52,17 +52,25 @@ fn extract_results(results: &mut Vec<InputItem>, extracted: &Extracted, base_pat
             }
         }
 
-        let name = entry.file_name().to_string_lossy();
+        let entry_file_name = entry.file_name().to_string_lossy();
 
-        if let Some(ref regex) = extracted.name
-            && !regex.is_match(&name)
+        if let Some(ref regex) = extracted.file_rgx
+            && !regex.is_match(&entry_file_name)
+        {
+            continue;
+        }
+
+        let entry_path_string = entry_path.display().to_string();
+
+        if let Some(ref regex) = extracted.path_rgx
+            && !regex.is_match(&entry_path_string)
         {
             continue;
         }
 
         let display = match extracted.mode {
-            DisplayMode::Filename => name.into_owned(),
-            DisplayMode::Absolute => entry_path.display().to_string(),
+            DisplayMode::Filename => entry_file_name.into_owned(),
+            DisplayMode::Absolute => entry_path_string.clone(),
             DisplayMode::Relative => match entry_path.strip_prefix(base_path) {
                 Ok(rel) => {
                     let rel = rel.display().to_string();
@@ -91,7 +99,7 @@ fn extract_results(results: &mut Vec<InputItem>, extracted: &Extracted, base_pat
             },
         };
 
-        results.push(InputItem::new(display, entry_path.display().to_string()));
+        results.push(InputItem::new(display, entry_path_string));
 
         if let Some(limit) = extracted.limit
             && results.len() >= limit

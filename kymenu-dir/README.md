@@ -1,4 +1,4 @@
-**kymenu-dir** - Recursively walks a directory and outputs items suitable for piping into `kymenu`
+**kymenu-dir** - Recursively lists directories and files with filtering and formatting options for kyvim integration.
 
 ### Features
 

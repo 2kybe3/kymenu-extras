@@ -15,7 +15,8 @@ pub(crate) struct Extracted {
     pub(crate) hidden: bool,
     pub(crate) limit: Option<usize>,
     pub(crate) ext: HashSet<String>,
-    pub(crate) name: Option<Regex>,
+    pub(crate) file_rgx: Option<Regex>,
+    pub(crate) path_rgx: Option<Regex>,
 }
 
 impl Cli {
@@ -25,11 +26,23 @@ impl Cli {
             .iter()
             .map(|path| path.canonicalize().unwrap_or(path.to_owned()))
             .collect();
+
         let mode = self.mode.unwrap_or(if paths.len() == 1 {
             DisplayMode::Relative
         } else {
             DisplayMode::RelativePrefixed
         });
+
+        let compile_regex = |regex_opt: Option<String>| {
+            regex_opt.and_then(|regex| {
+                Regex::new(&regex)
+                    .inspect_err(|e| {
+                        eprintln!("{}: regex '{regex}' failed to compile: '{e}'", cli::NAME)
+                    })
+                    .ok()
+            })
+        };
+
         Extracted {
             paths,
             mode,
@@ -43,23 +56,18 @@ impl Cli {
                     1
                 },
             ),
-            file: self.file.unwrap_or(true),
-            folder: self.folder.unwrap_or(true),
+            file: self.file,
+            folder: self.folder,
             exclude: self.exclude,
-            hidden: self.hidden.unwrap_or(false),
+            hidden: self.hidden,
             limit: self.limit,
             ext: self
                 .ext
                 .iter()
                 .map(|e| e.trim_start_matches(".").to_owned())
                 .collect(),
-            name: self.name.and_then(|name| {
-                Regex::new(&name)
-                    .inspect_err(|e| {
-                        eprintln!("{}: regex '{name}' failed to compile: '{e}'", cli::NAME)
-                    })
-                    .ok()
-            }),
+            file_rgx: compile_regex(self.file_rgx),
+            path_rgx: compile_regex(self.path_rgx),
         }
     }
 }
