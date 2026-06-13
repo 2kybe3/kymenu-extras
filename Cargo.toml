@@ -6,5 +6,5 @@ members = ["common", "kymenu-dir"]
 name = "kymenu-extras"
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.1"
 authors = ["2kybe3"]
