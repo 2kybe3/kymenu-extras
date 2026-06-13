@@ -2,10 +2,13 @@ use std::path::PathBuf;
 
 use clap::{Parser, ValueEnum};
 
+pub static NAME: &str = "kymenu-dir";
+
 #[derive(Debug, Parser)]
-#[command(version)]
+#[command(version, name = NAME)]
 pub(crate) struct Cli {
-    pub(crate) path: PathBuf,
+    #[arg(required = true, num_args = 1..)]
+    pub(crate) paths: Vec<PathBuf>,
 
     #[arg(short, long)]
     pub(crate) mode: Option<DisplayMode>,
@@ -38,10 +41,10 @@ pub(crate) struct Cli {
     pub(crate) name: Option<String>,
 }
 
-#[derive(Debug, Default, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub(crate) enum DisplayMode {
     Absolute,
     Filename,
-    #[default]
     Relative,
+    RelativePrefixed,
 }

@@ -13,8 +13,10 @@ fn main() -> Result<(), Error> {
     };
 
     let mut cmd = Cli::command();
+    let name = cmd.get_name().to_owned();
+
     for &shell in Shell::value_variants() {
-        generate_to(shell, &mut cmd, "kymenu-dir", &outdir)?;
+        generate_to(shell, &mut cmd, &name, &outdir)?;
     }
 
     Ok(())

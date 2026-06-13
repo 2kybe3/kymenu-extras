@@ -1,37 +1,20 @@
 mod cli;
+mod extracted;
 
-use std::collections::HashSet;
+use std::path::PathBuf;
 
 use clap::Parser;
 use common::{InputItem, InputItems};
 use walkdir::WalkDir;
 
-use crate::cli::DisplayMode;
+use crate::{
+    cli::{Cli, DisplayMode},
+    extracted::Extracted,
+};
 
-fn main() {
-    let cli = cli::Cli::parse();
-    let mode = cli.mode.unwrap_or_default();
-    let hidden = cli.hidden.unwrap_or_default();
-    let exts: HashSet<String> = cli
-        .ext
-        .iter()
-        .map(|e| e.trim_start_matches(".").to_owned())
-        .collect();
-
-    let file = cli.file.unwrap_or(true);
-    let folder = cli.folder.unwrap_or(true);
-
-    let name_regex = cli
-        .name
-        .as_deref()
-        .map(|name| regex::Regex::new(name).unwrap());
-
-    let root = cli.path.canonicalize().unwrap_or(cli.path);
-
-    let mut result: Vec<InputItem> = Vec::new();
-
-    let mut walkdir = WalkDir::new(&root).min_depth(cli.min_depth.unwrap_or(0) + 1);
-    if let Some(max_depth) = cli.max_depth {
+fn extract_results(results: &mut Vec<InputItem>, extracted: &Extracted, base_path: &PathBuf) {
+    let mut walkdir = WalkDir::new(base_path).min_depth(extracted.min_depth);
+    if let Some(max_depth) = extracted.max_depth {
         walkdir = walkdir.max_depth(max_depth);
     }
 
@@ -40,11 +23,11 @@ fn main() {
         .filter_entry(|e| {
             let name = e.file_name().to_string_lossy();
 
-            if !hidden && name.starts_with(".") {
+            if !extracted.hidden && name.starts_with(".") {
                 return false;
             }
 
-            if cli.exclude.iter().any(|x| x == &name) {
+            if extracted.exclude.iter().any(|x| x == &name) {
                 return false;
             }
 
@@ -52,48 +35,81 @@ fn main() {
         })
         .filter_map(|e| e.ok())
     {
-        let path = entry.path();
+        let entry_path = entry.path();
 
-        if !file && path.is_file() {
+        if !extracted.file && entry_path.is_file() {
             continue;
         }
-        if !folder && path.is_dir() {
+        if !extracted.folder && entry_path.is_dir() {
             continue;
         }
 
-        if path.is_file() && !exts.is_empty() {
-            let ext = path.extension().and_then(|e| e.to_str());
+        if entry_path.is_file() && !extracted.ext.is_empty() {
+            let ext = entry_path.extension().and_then(|e| e.to_str());
 
-            if !ext.is_some_and(|e| exts.iter().any(|x| x == e)) {
+            if !ext.is_some_and(|e| extracted.ext.iter().any(|x| x == e)) {
                 continue;
             }
         }
 
         let name = entry.file_name().to_string_lossy();
 
-        if let Some(ref regex) = name_regex
+        if let Some(ref regex) = extracted.name
             && !regex.is_match(&name)
         {
             continue;
         }
 
-        let display = match mode {
+        let display = match extracted.mode {
             DisplayMode::Filename => name.into_owned(),
-            DisplayMode::Absolute => path.display().to_string(),
-            DisplayMode::Relative => match path.strip_prefix(&root) {
+            DisplayMode::Absolute => entry_path.display().to_string(),
+            DisplayMode::Relative => match entry_path.strip_prefix(base_path) {
                 Ok(rel) => rel.display().to_string(),
+                Err(_) => continue,
+            },
+            DisplayMode::RelativePrefixed => match entry_path.strip_prefix(base_path) {
+                Ok(rel) => {
+                    let prefix = base_path.file_name().and_then(|s| s.to_str());
+
+                    match prefix {
+                        Some(prefix) if rel.as_os_str().is_empty() => prefix.to_string(),
+                        Some(prefix) => format!("{}/{}", prefix, rel.display()),
+                        None => rel.display().to_string(),
+                    }
+                }
                 Err(_) => continue,
             },
         };
 
-        result.push(InputItem::new(display, path.display().to_string()));
+        results.push(InputItem::new(display, entry_path.display().to_string()));
 
-        if let Some(limit) = cli.limit
-            && result.len() >= limit
+        if let Some(limit) = extracted.limit
+            && results.len() >= limit
+        {
+            break;
+        }
+    }
+}
+
+fn main() {
+    let extracted = Cli::parse().extract();
+
+    if extracted.paths.is_empty() {
+        eprintln!("{}: please provide one or multiple paths", cli::NAME);
+        std::process::exit(1);
+    }
+
+    let mut results: Vec<InputItem> = Vec::new();
+
+    for path in &extracted.paths {
+        extract_results(&mut results, &extracted, path);
+
+        if let Some(limit) = extracted.limit
+            && results.len() >= limit
         {
             break;
         }
     }
 
-    InputItems::new(result).print()
+    InputItems::new(results).print()
 }
