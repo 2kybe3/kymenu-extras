@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use clap::{Parser, ValueEnum};
+use clap::{ArgAction, Parser, ValueEnum};
 
 pub static NAME: &str = "kymenu-dir";
 
@@ -25,6 +25,7 @@ pub(crate) struct Cli {
 
     #[arg(
         long,
+        action = ArgAction::Set,
         default_value_t = true,
         help = "Specifies whether to include files"
     )]
@@ -32,6 +33,7 @@ pub(crate) struct Cli {
 
     #[arg(
         long,
+        action = ArgAction::Set,
         default_value_t = true,
         help = "Specifies whether to include folders"
     )]
@@ -42,6 +44,7 @@ pub(crate) struct Cli {
 
     #[arg(
         long,
+        action = ArgAction::Set,
         default_value_t = false,
         help = "Specifies whether to process hidden files"
     )]

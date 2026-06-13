@@ -74,6 +74,7 @@ fn extract_results(results: &mut Vec<InputItem>, extracted: &Extracted, base_pat
             DisplayMode::Relative => match entry_path.strip_prefix(base_path) {
                 Ok(rel) => {
                     let rel = rel.display().to_string();
+
                     if rel.is_empty() {
                         base_path
                             .file_name()
