@@ -25,16 +25,22 @@ pub(crate) struct Cli {
 
     #[arg(
         long,
-        action = ArgAction::Set,
+        num_args = 0..=1,
+        require_equals = true,
         default_value_t = true,
+        action = ArgAction::Set,
+        default_missing_value = "true",
         help = "Specifies whether to include files"
     )]
     pub(crate) file: bool,
 
     #[arg(
         long,
-        action = ArgAction::Set,
+        num_args = 0..=1,
+        require_equals = true,
         default_value_t = true,
+        action = ArgAction::Set,
+        default_missing_value = "true",
         help = "Specifies whether to include folders"
     )]
     pub(crate) folder: bool,
@@ -44,8 +50,11 @@ pub(crate) struct Cli {
 
     #[arg(
         long,
+        num_args = 0..=1,
+        require_equals = true,
         action = ArgAction::Set,
         default_value_t = false,
+        default_missing_value = "true",
         help = "Specifies whether to process hidden files"
     )]
     pub(crate) hidden: bool,
