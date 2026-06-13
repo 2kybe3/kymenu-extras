@@ -34,7 +34,15 @@ impl Cli {
             paths,
             mode,
             max_depth: self.max_depth,
-            min_depth: self.min_depth.unwrap_or(1),
+            min_depth: self.min_depth.unwrap_or(
+                if let Some(max_depth) = self.max_depth
+                    && max_depth == 0
+                {
+                    0
+                } else {
+                    1
+                },
+            ),
             file: self.file.unwrap_or(true),
             folder: self.folder.unwrap_or(true),
             exclude: self.exclude,
