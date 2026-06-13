@@ -38,9 +38,10 @@ let
 
   installCompletionsForCrate = crate: ''
     installShellCompletion --cmd ${crate} \
+        --nushell target/*/build/${crate}*/out/${crate}.elv \
         --bash target/*/build/${crate}*/out/${crate}.bash \
         --fish target/*/build/${crate}*/out/${crate}.fish \
-        --zsh  target/*/build/${crate}*/out/${crate}*.elv
+        --zsh  target/*/build/${crate}*/out/_${crate}
   '';
 
   kymenu-dir = craneLib.buildPackage (
