@@ -29,7 +29,6 @@ pub(crate) struct Cli {
         require_equals = true,
         default_value_t = true,
         action = ArgAction::Set,
-        default_missing_value = "true",
         help = "Specifies whether to include files"
     )]
     pub(crate) file: bool,
@@ -40,7 +39,6 @@ pub(crate) struct Cli {
         require_equals = true,
         default_value_t = true,
         action = ArgAction::Set,
-        default_missing_value = "true",
         help = "Specifies whether to include folders"
     )]
     pub(crate) folder: bool,
