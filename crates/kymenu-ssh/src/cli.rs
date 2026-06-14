@@ -64,5 +64,5 @@ pub(crate) struct Cli {
         value_name = "REGEX",
         help = "Only include hosts whose hostname matches the regex"
     )]
-    pub(crate) host_rgx: Option<String>
+    pub(crate) host_rgx: Option<String>,
 }
