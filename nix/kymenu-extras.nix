@@ -31,7 +31,7 @@ let
       fileset = lib.fileset.unions [
         ../Cargo.toml
         ../Cargo.lock
-        (craneLib.fileset.commonCargoSources ../common)
+        (craneLib.fileset.commonCargoSources ../crates/common)
         (craneLib.fileset.commonCargoSources crate)
       ];
     };
@@ -59,7 +59,28 @@ let
       {
         inherit pname;
         cargoExtraArgs = "-p ${pname}";
-        src = fileSetForCrate ../kymenu-dir;
+        src = fileSetForCrate ../crates/kymenu-dir;
+        meta.mainProgram = pname;
+
+        nativeBuildInputs = [ pkgs.installShellFiles ];
+        postInstall = toString [
+          (installCompletionsForCrate pname)
+          (installManPagesForCrate pname)
+        ];
+      }
+    )
+  );
+
+  kymenu-ssh = craneLib.buildPackage (
+    individualCrateArgs
+    // (
+      let
+        pname = "kymenu-ssh";
+      in
+      {
+        inherit pname;
+        cargoExtraArgs = "-p ${pname}";
+        src = fileSetForCrate ../crates/kymenu-ssh;
         meta.mainProgram = pname;
 
         nativeBuildInputs = [ pkgs.installShellFiles ];
@@ -72,7 +93,7 @@ let
   );
 
   checks = {
-    inherit kymenu-dir;
+    inherit kymenu-dir kymenu-ssh;
 
     kymenu-extras-clippy = craneLib.cargoClippy (
       commonArgs
@@ -88,7 +109,7 @@ let
   };
 
   packages = {
-    inherit kymenu-dir;
+    inherit kymenu-dir kymenu-ssh;
   };
 in
 {
