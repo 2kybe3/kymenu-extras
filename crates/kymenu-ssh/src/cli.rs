@@ -48,7 +48,21 @@ pub(crate) struct Cli {
     #[arg(
         long,
         value_name = "REGEX",
-        help = "Only include hosts matching the given regular expression"
+        help = "Only include hosts whose display name matches the regex"
     )]
-    pub(crate) regex: Option<String>,
+    pub(crate) name_rgx: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "REGEX",
+        help = "Only include hosts whose username matches the regex"
+    )]
+    pub(crate) user_rgx: Option<String>,
+
+    #[arg(
+        long,
+        value_name = "REGEX",
+        help = "Only include hosts whose hostname matches the regex"
+    )]
+    pub(crate) host_rgx: Option<String>
 }

@@ -9,20 +9,41 @@ use crate::cli::Cli;
 
 fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
-    let regex = cli.regex.map(|regex| {
-        Regex::new(&regex).unwrap_or_else(|e| {
-            eprintln!("{}: failed to compile regex '{regex}': '{e}'", cli::NAME);
-            std::process::exit(1)
+
+    let compile_rgx = |name: &str, rgx: Option<String>| {
+        rgx.map(|rgx| {
+            Regex::new(&rgx).unwrap_or_else(|e| {
+                eprintln!("{}: failed to compile {name} '{rgx}': '{e}'", cli::NAME);
+                std::process::exit(1)
+            })
         })
-    });
+    };
+
+    let name_rgx = compile_rgx("name_rgx", cli.name_rgx);
+    let user_rgx = compile_rgx("user_rgx", cli.user_rgx);
+    let host_rgx = compile_rgx("host_rgx", cli.host_rgx);
 
     let hosts = SSHHosts::new(cli.user_config, cli.system_config)?;
 
     let mut result = Vec::new();
 
     for (name, config) in hosts.0 {
-        if let Some(regex) = &regex
-            && !regex.is_match(&name)
+        if let Some(rgx) = &name_rgx
+            && !rgx.is_match(&name)
+        {
+            continue;
+        }
+
+        if let Some(username) = &config.user
+            && let Some(user_rgx) = &user_rgx
+            && !user_rgx.is_match(username)
+        {
+            continue;
+        }
+
+        if let Some(hostname) = &config.hostname
+            && let Some(host_rgx) = &host_rgx
+            && !host_rgx.is_match(hostname)
         {
             continue;
         }
