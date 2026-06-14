@@ -2,5 +2,5 @@
 
 Lightweight utilities that generate input for **kymenu**.
 
-### [kymenu-dir](./kymenu-dir/README.md)
-### [kymenu-ssh](./kymenu-ssh/README.md)
+### [kymenu-dir](./crates/kymenu-dir/README.md)
+### [kymenu-ssh](./crates/kymenu-ssh/README.md)
