@@ -17,8 +17,8 @@
 # Basic usage
 kymenu-ssh | kymenu --json-in
 
-# Show username + hostname
-kymenu-ssh --username --hostname | kymenu --json-in
+# Don't show username + hostname
+kymenu-ssh --username=false --hostname=false | kymenu --json-in
 
 # Also include system SSH config
 kymenu-ssh --system-config=true | kymenu --json-in
