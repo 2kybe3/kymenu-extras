@@ -1,0 +1,12 @@
+Include ./config_include
+
+Host test test1 test2
+    User testing2
+
+Host no_user
+    HostName no_user.example.com
+
+Host no_host
+    User no_host
+
+Host *

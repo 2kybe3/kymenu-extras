@@ -25,15 +25,17 @@ let
   };
 
   fileSetForCrate =
-    crate:
+    extra:
     lib.fileset.toSource {
       root = ../.;
-      fileset = lib.fileset.unions [
-        ../Cargo.toml
-        ../Cargo.lock
-        (craneLib.fileset.commonCargoSources ../crates/common)
-        (craneLib.fileset.commonCargoSources crate)
-      ];
+      fileset = lib.fileset.unions (
+        [
+          ../Cargo.toml
+          ../Cargo.lock
+          (craneLib.fileset.commonCargoSources ../crates/common)
+        ]
+        ++ map (i: craneLib.fileset.commonCargoSources i) extra
+      );
     };
 
   outPath = crate: "target/*/build/*/out";
@@ -59,7 +61,7 @@ let
       {
         inherit pname;
         cargoExtraArgs = "-p ${pname}";
-        src = fileSetForCrate ../crates/kymenu-dir;
+        src = fileSetForCrate [ ../crates/kymenu-dir ];
         meta.mainProgram = pname;
 
         nativeBuildInputs = [ pkgs.installShellFiles ];
@@ -80,7 +82,10 @@ let
       {
         inherit pname;
         cargoExtraArgs = "-p ${pname}";
-        src = fileSetForCrate ../crates/kymenu-ssh;
+        src = fileSetForCrate [
+          ../crates/kymenu-ssh
+          ../crates/ssh-matcher
+        ];
         meta.mainProgram = pname;
 
         nativeBuildInputs = [ pkgs.installShellFiles ];

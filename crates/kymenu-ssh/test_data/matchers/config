@@ -1,0 +1,18 @@
+Host test
+
+Host test1
+
+Host test2
+
+Host abc1
+
+Host abc2
+
+Host *
+    User abc
+
+Host test[1-2]
+    User test
+
+Host test1
+    Hostname test.example.com

@@ -180,6 +180,7 @@ dependencies = [
  "clap_mangen",
  "common",
  "regex",
+ "ssh-matcher",
  "thiserror",
 ]
 
@@ -299,6 +300,10 @@ dependencies = [
  "serde_core",
  "zmij",
 ]
+
+[[package]]
+name = "ssh-matcher"
+version = "0.1.3"
 
 [[package]]
 name = "strsim"

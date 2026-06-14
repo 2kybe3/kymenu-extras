@@ -70,25 +70,23 @@ impl PendingHost {
         self.hostname = None;
     }
 
-    fn flush_pending(&mut self, results: &mut HashMap<String, SSHHostSetting>) {
+    fn flush_pending(&mut self, results: &mut Vec<Rule>) {
         for name in &self.names {
-            if name.starts_with('!')
-                || name.contains('*')
-                || name.contains('?')
-                || name.contains('[')
-                || name.contains(']')
-            {
-                continue;
-            }
-
-            results.insert(
-                name.to_owned(),
-                SSHHostSetting::new(self.user.clone(), self.hostname.clone()),
-            );
+            results.push(Rule {
+                pattern: name.to_owned(),
+                user: self.user.clone(),
+                hostname: self.hostname.clone(),
+            });
         }
 
         self.clear();
     }
+}
+
+struct Rule {
+    pattern: String,
+    user: Option<String>,
+    hostname: Option<String>,
 }
 
 impl SSHHosts {
@@ -115,8 +113,27 @@ impl SSHHosts {
         Ok(SSHHosts(res))
     }
 
-    fn process_items(items: &[SSHConfigItem]) -> HashMap<String, SSHHostSetting> {
-        let mut results = HashMap::new();
+    fn resolve(name: &str, rules: &[Rule]) -> SSHHostSetting {
+        let mut user = None;
+        let mut hostname = None;
+
+        for rule in rules {
+            if ssh_matcher::Matcher::new(&rule.pattern).matches(name) {
+                if rule.user.is_some() {
+                    user = rule.user.clone();
+                }
+
+                if rule.hostname.is_some() {
+                    hostname = rule.hostname.clone();
+                }
+            }
+        }
+
+        SSHHostSetting::new(user, hostname)
+    }
+
+    fn generate_rules(items: &[SSHConfigItem]) -> Vec<Rule> {
+        let mut results = Vec::new();
 
         let mut pending = PendingHost::new();
         for item in items {
@@ -132,6 +149,25 @@ impl SSHHosts {
             }
         }
         pending.flush_pending(&mut results);
+
+        results
+    }
+
+    fn process_items(items: &[SSHConfigItem]) -> HashMap<String, SSHHostSetting> {
+        let mut results = HashMap::new();
+
+        let rules = Self::generate_rules(items);
+
+        for rule in &rules {
+            let name = &rule.pattern;
+
+            if name.contains("?") || name.contains("*") || name.contains("[") || name.contains("]")
+            {
+                continue;
+            }
+
+            results.insert(name.clone(), Self::resolve(name, &rules));
+        }
 
         results
     }
@@ -169,5 +205,89 @@ impl SSHHosts {
         }
 
         Ok(items)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn matchers() {
+        let mut visited = HashSet::new();
+
+        let res = SSHHosts::process_items(
+            &SSHHosts::read_config_file(&PathBuf::from("test_data/matchers/config"), &mut visited)
+                .unwrap(),
+        );
+
+        assert_eq!(res.len(), 5);
+        assert!(res.contains_key("test"));
+        assert!(res.contains_key("test1"));
+        assert!(res.contains_key("test2"));
+        assert!(res.contains_key("abc1"));
+        assert!(res.contains_key("abc2"));
+
+        let test = res.get("test").unwrap();
+        assert_eq!(test.user, Some("abc".to_string()));
+        assert_eq!(test.hostname, None);
+
+        let test1 = res.get("test1").unwrap();
+        assert_eq!(test1.user, Some("test".to_string()));
+        assert_eq!(test1.hostname, Some("test.example.com".to_string()));
+
+        let test2 = res.get("test2").unwrap();
+        assert_eq!(test2.user, Some("test".to_string()));
+        assert_eq!(test2.hostname, None);
+
+        let abc1 = res.get("abc1").unwrap();
+        assert_eq!(abc1.user, Some("abc".to_string()));
+        assert_eq!(abc1.hostname, None);
+
+        let abc2 = res.get("abc2").unwrap();
+        assert_eq!(abc2.user, Some("abc".to_string()));
+        assert_eq!(abc2.hostname, None);
+    }
+
+    #[test]
+    fn basic() {
+        let mut visited = HashSet::new();
+
+        let res = SSHHosts::process_items(
+            &SSHHosts::read_config_file(&PathBuf::from("test_data/basic/config"), &mut visited)
+                .unwrap(),
+        );
+
+        assert_eq!(res.len(), 6);
+        assert!(res.contains_key("test"));
+        assert!(res.contains_key("test1"));
+        assert!(res.contains_key("test2"));
+        assert!(res.contains_key("test3"));
+        assert!(res.contains_key("no_host"));
+        assert!(res.contains_key("no_user"));
+
+        let test = res.get("test").unwrap();
+        assert_eq!(test.user, Some("testing2".to_string()));
+        assert_eq!(test.hostname, Some("host_name.example.com".to_string()));
+
+        let test1 = res.get("test1").unwrap();
+        assert_eq!(test1.user, Some("testing2".to_string()));
+        assert_eq!(test1.hostname, None);
+
+        let test2 = res.get("test2").unwrap();
+        assert_eq!(test2.user, Some("testing2".to_string()));
+        assert_eq!(test2.hostname, None);
+
+        let test3 = res.get("test3").unwrap();
+        assert_eq!(test3.user, Some("testing".to_string()));
+        assert_eq!(test3.hostname, Some("host_name.example.com".to_string()));
+
+        let no_user = res.get("no_user").unwrap();
+        assert_eq!(no_user.user, None);
+        assert_eq!(no_user.hostname, Some("no_user.example.com".to_string()));
+
+        let no_host = res.get("no_host").unwrap();
+        assert_eq!(no_host.user, Some("no_host".to_string()));
+        assert_eq!(no_host.hostname, None);
     }
 }
