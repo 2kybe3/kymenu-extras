@@ -54,16 +54,36 @@ fn extract_results(results: &mut Vec<InputItem>, extracted: &Extracted, base_pat
 
         let entry_file_name = entry.file_name().to_string_lossy();
 
-        if let Some(ref regex) = extracted.file_rgx
-            && !regex.is_match(&entry_file_name)
+        if !extracted.file_rgx.is_empty()
+            && !extracted
+                .file_rgx
+                .iter()
+                .any(|r| r.is_match(&entry_file_name))
+        {
+            continue;
+        }
+        if extracted
+            .file_exclude_rgx
+            .iter()
+            .any(|r| r.is_match(&entry_file_name))
         {
             continue;
         }
 
         let entry_path_string = entry_path.display().to_string();
 
-        if let Some(ref regex) = extracted.path_rgx
-            && !regex.is_match(&entry_path_string)
+        if !extracted.path_rgx.is_empty()
+            && !extracted
+                .path_rgx
+                .iter()
+                .any(|r| r.is_match(&entry_path_string))
+        {
+            continue;
+        }
+        if extracted
+            .path_exclude_rgx
+            .iter()
+            .any(|r| r.is_match(&entry_path_string))
         {
             continue;
         }

@@ -67,13 +67,25 @@ pub(crate) struct Cli {
         long,
         help = "Specifies a regex that must match the filename to be included"
     )]
-    pub(crate) file_rgx: Option<String>,
+    pub(crate) file_rgx: Vec<String>,
+
+    #[arg(
+        long,
+        help = "Specifies a regex that must not match the filename to be included"
+    )]
+    pub(crate) file_exclude_rgx: Vec<String>,
 
     #[arg(
         long,
         help = "Specifies a regex that must match the path name to be included"
     )]
-    pub(crate) path_rgx: Option<String>,
+    pub(crate) path_rgx: Vec<String>,
+
+    #[arg(
+        long,
+        help = "Specifies a regex that must not match the path name to be included"
+    )]
+    pub(crate) path_exclude_rgx: Vec<String>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]

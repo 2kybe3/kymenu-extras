@@ -15,8 +15,10 @@ pub(crate) struct Extracted {
     pub(crate) hidden: bool,
     pub(crate) limit: Option<usize>,
     pub(crate) ext: HashSet<String>,
-    pub(crate) file_rgx: Option<Regex>,
-    pub(crate) path_rgx: Option<Regex>,
+    pub(crate) file_rgx: Vec<Regex>,
+    pub(crate) file_exclude_rgx: Vec<Regex>,
+    pub(crate) path_rgx: Vec<Regex>,
+    pub(crate) path_exclude_rgx: Vec<Regex>,
 }
 
 impl Cli {
@@ -33,14 +35,12 @@ impl Cli {
             DisplayMode::RelativePrefixed
         });
 
-        let compile_regex = |regex_opt: Option<String>| {
-            regex_opt.and_then(|regex| {
-                Regex::new(&regex)
-                    .inspect_err(|e| {
-                        eprintln!("{}: regex '{regex}' failed to compile: '{e}'", cli::NAME)
-                    })
-                    .ok()
-            })
+        let compile_regex = |regex: &str| match Regex::new(regex) {
+            Ok(v) => v,
+            Err(e) => {
+                eprintln!("{}: regex '{regex}' failed to compile: '{e}'", cli::NAME);
+                std::process::exit(1);
+            }
         };
 
         Extracted {
@@ -66,8 +66,26 @@ impl Cli {
                 .iter()
                 .map(|e| e.trim_start_matches(".").to_owned())
                 .collect(),
-            file_rgx: compile_regex(self.file_rgx),
-            path_rgx: compile_regex(self.path_rgx),
+            file_rgx: self
+                .file_rgx
+                .iter()
+                .map(|regex| compile_regex(regex))
+                .collect(),
+            file_exclude_rgx: self
+                .file_exclude_rgx
+                .iter()
+                .map(|regex| compile_regex(regex))
+                .collect(),
+            path_rgx: self
+                .path_rgx
+                .iter()
+                .map(|regex| compile_regex(regex))
+                .collect(),
+            path_exclude_rgx: self
+                .path_exclude_rgx
+                .iter()
+                .map(|regex| compile_regex(regex))
+                .collect(),
         }
     }
 }
